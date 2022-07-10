@@ -1,5 +1,7 @@
 package database
 
+//go:generate mockery --all --inpackage --unroll-variadic=false
+
 type IPersistence interface {
 	Select(dest interface{}, sqlQuery string, params ...interface{}) error
 	Exec(sqlQuery string, params ...interface{}) error
