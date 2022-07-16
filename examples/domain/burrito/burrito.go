@@ -1,8 +1,12 @@
-package pvi
+package burrito
 
-type PVIEntity struct {
+type BurritoEntity struct {
 	ID    string
 	State EntityState
+}
+
+func (b *BurritoEntity) EntityID() string {
+	return b.ID
 }
 
 type EntityState int

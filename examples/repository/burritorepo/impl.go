@@ -1,21 +1,20 @@
-package operationsimpl
+package burritorepo
 
 import (
 	"strings"
 
-	"github.com/fiffu/repo-injection-approaches/examples/database"
-	"github.com/fiffu/repo-injection-approaches/examples/domain/pvi"
-	"github.com/fiffu/repo-injection-approaches/examples/repository"
+	"github.com/fiffu/repo-injection-approaches/examples/domain/burrito"
+	"github.com/fiffu/repo-injection-approaches/examples/infra/database"
 )
 
 type operationsImpl struct{}
 
-func NewOperationsRepo() pvi.IPVIOperations {
+func NewOperationsRepo() burrito.IBurritoOperations {
 	return &operationsImpl{}
 }
 
-func (i *operationsImpl) Find(q *pvi.Query) pvi.GetManyOp {
-	return func(conn database.IPersistence) ([]*pvi.PVIEntity, error) {
+func (i *operationsImpl) Find(q *burrito.Query) burrito.GetManyOp {
+	return func(conn database.IPersistence) ([]*burrito.BurritoEntity, error) {
 		sql := "SELECT id, state FROM sometable {{whereFilters}}"
 
 		// filter
@@ -25,33 +24,33 @@ func (i *operationsImpl) Find(q *pvi.Query) pvi.GetManyOp {
 			whereFilters = append(whereFilters, "id = ?")
 			params = append(params, []byte(q.ID))
 		}
-		if q.State != pvi.Unknown {
+		if q.State != burrito.Unknown {
 			whereFilters = append(whereFilters, "state = ?")
-			params = append(params, repository.EncodeEntityState(q.State))
+			params = append(params, EncodeEntityState(q.State))
 		}
 		if len(whereFilters) > 0 {
 			sql = strings.ReplaceAll(sql, "{{whereFilters}}", strings.Join(whereFilters, " AND "))
 		}
 
 		// query
-		rows := make([]*repository.EntityDBModel, 0)
+		rows := make([]*BurritoDBModel, 0)
 		err := conn.Select(&rows, sql, params...)
 		if err != nil {
 			return nil, err
 		}
 
 		// deserialize
-		result := make([]*pvi.PVIEntity, 0)
+		result := make([]*burrito.BurritoEntity, 0)
 		for _, row := range rows {
-			result = append(result, repository.Deserialize(row))
+			result = append(result, Deserialize(row))
 		}
 
 		return result, nil
 	}
 }
 
-func (i *operationsImpl) FindOne(q *pvi.Query) pvi.GetOneOp {
-	return func(conn database.IPersistence) (*pvi.PVIEntity, error) {
+func (i *operationsImpl) FindOne(q *burrito.Query) burrito.GetOneOp {
+	return func(conn database.IPersistence) (*burrito.BurritoEntity, error) {
 		found, err := i.Find(q)(conn)
 		if err != nil {
 			return nil, err
@@ -60,7 +59,7 @@ func (i *operationsImpl) FindOne(q *pvi.Query) pvi.GetOneOp {
 	}
 }
 
-func (i *operationsImpl) Update(*pvi.PVIEntity, *pvi.Query, *pvi.UpdateValues) pvi.UpdateOp {
+func (i *operationsImpl) Update(*burrito.BurritoEntity, *burrito.Query, *burrito.UpdateValues) burrito.UpdateOp {
 	return func(conn database.IPersistence) error {
 		return nil
 	}
